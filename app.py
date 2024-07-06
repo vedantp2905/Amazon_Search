@@ -268,8 +268,8 @@ def main():
         st.session_state.generated_content = ''
     
     with st.sidebar:
-        with st.form('Gemini/OpenAI/Groq'):
-            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI','Groq'))
+        with st.form('Gemini/OpenAI'):
+            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI'))
             api_key = st.text_input(f'Enter your API key', type="password")
             scraper_key = st.text_input(f'Enter your Scraper API key', type="password")
             submitted = st.form_submit_button("Submit")
