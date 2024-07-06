@@ -245,14 +245,13 @@ def generate_text(llm, query,scraper_api):
     
     """,
     context=[task_format],
-    agent=comparison_agent,
-    human_input = True
+    agent=comparison_agent
 )
 
     crew = Crew(
     agents=[searcher_agent, product_agent, reviews_agent,formatter_agent,comparison_agent],
     tasks=[task_searcher, task_product, task_reviews,task_format,task_comparison],
-    verbose=2,
+    verbose=2
     
 )
 
