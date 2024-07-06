@@ -2,7 +2,6 @@ from io import BytesIO
 import os
 import asyncio
 from docx import Document
-from langchain_groq import ChatGroq
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
