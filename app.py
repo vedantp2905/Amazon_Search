@@ -146,8 +146,7 @@ def generate_text(llm, query,scraper_api):
     task_reviews = Task(
     description=f'Search for product reviews on Amazon using the ASINs extracted from the previous search results.',
     expected_output="""
-     A list of reviews for each product found. For each product,
-     Present the reviews in a clear, organized manner.
+     A list of reviews for each product found. 
      """,
     context = [task_searcher],
     agent=product_agent,
@@ -206,6 +205,7 @@ def generate_text(llm, query,scraper_api):
     Compare all the products from task_format. Analyze each product based on the following criteria:
     1. Product technicalities (specifications and features)
     2. Customer reviews and ratings
+    Give more weightage to reviews and ratings
 
     After thorough analysis, determine:
     - The top 3 best overall products
