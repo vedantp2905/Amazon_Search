@@ -334,7 +334,9 @@ def main():
 
         if api_key and scraper_key:
             if model == "Gemini":
+                st.write(f"Verifying {model} API key...")
                 validity_model = verify_gemini_api_key(api_key)
+                st.write(f"Verification result: {validity_model}")
                 if validity_model ==True:
                     st.write(f"Valid {model} API key")
                 else:
