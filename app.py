@@ -11,6 +11,64 @@ from crewai_tools import tool
 from crewai.process import Process
 import requests
 
+def verify_gemini_api_key(api_key):
+    API_VERSION = 'v1'
+    api_url = f"https://generativelanguage.googleapis.com/{API_VERSION}/models?key={api_key}"
+    
+    try:
+        response = requests.get(api_url, headers={'Content-Type': 'application/json'})
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+        
+        return False
+    
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
+
+def verify_gpt_api_key(api_key):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Using a simple request to the models endpoint
+    response = requests.get("https://api.openai.com/v1/models", headers=headers)
+    
+    if response.status_code == 200:
+        return True
+    elif response.status_code == 401:
+        return False
+    else:
+        print(f"Unexpected status code: {response.status_code}")
+        return False
+
+def verify_scraper_api_key(api_key):
+    # ScraperAPI endpoint for a simple GET request
+    url = f"http://api.scraperapi.com?api_key={api_key}&url=http://httpbin.org/ip"
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+        # If we get a 401 or 403 error, it means the API key is invalid
+        if e.response.status_code in [401, 403]:
+            return False
+        else:
+            # For other HTTP errors, we'll raise an exception
+            raise ValueError(f"HTTP error occurred: {e}")
+    
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
 
 # Function to handle RAG content generation
 def generate_text(llm, query,scraper_api):
@@ -261,7 +319,8 @@ def generate_text(llm, query,scraper_api):
 def main():
     
     st.header('AI Amazon Product Searcher')
-    mod = None
+    validity_model= False
+    validity_scraper = False    
     
     if 'generated_content' not in st.session_state:
         st.session_state.generated_content = ''
@@ -273,7 +332,29 @@ def main():
             scraper_key = st.text_input(f'Enter your Scraper API key', type="password")
             submitted = st.form_submit_button("Submit")
 
-    if api_key :
+        if api_key and scraper_key:
+            if model == "Gemini":
+                validity_model = verify_gemini_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")
+                    
+            elif model == "OpenAI":
+                validity_model = verify_gpt_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")
+            
+            validity_scraper = verify_scraper_api_key(scraper_key)
+            if validity_scraper ==True:
+                st.write(f"Valid ScraperAPI API key")
+            else:
+                st.write(f"Invalid ScraperAPI API key")
+            
+            
+    if validity_model and validity_scraper:                
         if model == 'OpenAI':
             async def setup_OpenAI():
                 loop = asyncio.get_event_loop()
@@ -282,13 +363,12 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = ChatOpenAI(model='gpt-4-turbo',temperature=0.6, max_tokens=2000,api_key=api_key)
+                llm = ChatOpenAI(model='gpt-4-turbo',temperature=0.6, max_tokens=4000,api_key=api_key)
                 print("OpenAI Configured")
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
-            mod = 'Gemini'
-
+            mod = 'OpemAI'
 
         elif model == 'Gemini':
             async def setup_gemini():
